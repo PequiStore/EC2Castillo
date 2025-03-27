@@ -1,0 +1,63 @@
+name: EC2 Provisioning
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Escolha a ação: apply ou destroy"
+        required: true
+        default: "apply"
+        type: choice
+        options:
+          - apply
+          - destroy
+      instance_type:
+        description: "Tipo da instância EC2 (e.g., t2.micro)"
+        required: true
+        default: "t2.micro"
+      ami:
+        description: "ID da AMI para inicializar a instância"
+        required: true
+        default: "ami-0a590ca28046d073e"
+      key_name:
+        description: "Nome da chave SSH"
+        required: true
+        default: "my-generated-key"
+      environment:
+        description: "Nome do ambiente (e.g., dev, prod)"
+        required: true
+        default: "dev"
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.6
+
+    - name: Initialize Terraform
+      run: terraform -chdir=. init
+
+    - name: Validate Terraform Configuration
+      run: terraform -chdir=. validate
+
+    - name: Terraform Action
+      run: |
+        terraform -chdir=. ${{ github.event.inputs.action }} -auto-approve \
+          -var="instance_type=${{ github.event.inputs.instance_type }}" \
+          -var="ami=${{ github.event.inputs.ami }}" \
+          -var="key_name=${{ github.event.inputs.key_name }}" \
+          -var="environment=${{ github.event.inputs.environment }}";

@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: "EC2Castillo"
+  description: "Sera usada para testes"
+  annotations:
+    github.com/project-slug: "PequiStore/EC2Castillo"
+    backstage.io/techdocs-ref: dir:.
+
+spec:
+  type: infrastructure
+  owner: "group:equipe-dev"
+  lifecycle: experimental
+
+---
